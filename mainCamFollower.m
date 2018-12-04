@@ -196,6 +196,65 @@ plot(fis4,ddys4,'r')
 plot(fis5,ddys5,'r')
 hold off
 
+
+%########
+%# Jerk #
+%########
+
+% Bézier ordinates :
+cppp1 = (n1+2)*(n1+1)*n1/beta1^2*L*[-1/2]';
+cppp2 = 0;
+cppp3 = (n3+2)*(n3+1)*n3/beta3^2*[-L3/2; +L3/2];
+cppp4 = 0;
+cppp5 = (n5+2)*(n5+1)*n5/beta5^2*[-(L1+L2+L3); 2*(L1+L2+L3)];
+
+% Update polinomial degree:
+n1=numel(cppp1)-1;
+n2=numel(cppp2)-1;
+n3=numel(cppp3)-1;
+n4=numel(cppp4)-1
+n5=numel(cppp5)-1;
+
+% Bézier Control Points:
+dddxPC1 = phiA:beta1/n1:phiB;
+dddxPC2 = phiB:beta2/n2:phiC;
+dddxPC3 = phiC:beta3/n3:phiD;
+dddxPC4 = phiD:beta4/n4:phiE;
+dddxPC5 = phiE:beta5/n5:phiF;
+
+dddxPC=[dddxPC1(:);dddxPC2(:);dddxPC3(:);dddxPC4(:);dddxPC5(:)];
+dddyPC=[cppp1(:);cppp2(:);cppp3(:);cppp4(:);cppp5(:)];
+
+
+% Acclerations:
+for j=1:div+1
+   u=(j-1)/div;
+   dddys1(j)=Bezier(cppp1,n1,u);
+   dddys2(j)=Bezier(cppp2,n2,u);
+   dddys3(j)=Bezier(cppp3,n3,u);
+   dddys4(j)=Bezier(cppp4,n4,u);   
+   dddys5(j)=Bezier(cppp5,n5,u);   
+end
+
+
+figure(4)
+hold on
+grid on
+title('Follower Jerk [$mm/s^3$] - Cam Angle [$rad$]','interpreter','latex','Fontsize', 12)
+yMin=min(dddyPC);
+yMax=max(dddyPC);
+axis([0 2*pi yMin yMax])
+plot(dddxPC,dddyPC,'b*')
+plot(dddxPC,dddyPC,'b')
+plot(fis1,dddys1,'r')
+plot(fis2,dddys2,'r')
+plot(fis3,dddys3,'r')
+plot(fis4,dddys4,'r')
+plot(fis5,dddys5,'r')
+hold off
+
+
+return
 %%
 %#####################################
 % Cam profile for eccentric follower
@@ -210,19 +269,20 @@ rb=20;
 y    = [ys1,ys2(2:end),ys3(2:end),ys4(2:end),ys5(2:end)];
 dy   = [dys1,dys2(2:end),dys3(2:end),dys4(2:end),dys5(2:end)];
 ddy  = [ddys1,ddys2(2:end),ddys3(2:end),ddys4(2:end),ddys5(2:end)];
+dddy = [dddys1,dddys2(2:end),dddys3(2:end),dddys4(2:end),dddys5(2:end)];
 ySeg = rb+[ys1,ys2(2:end),ys3(2:end),ys4(2:end),ys5(2:end)];
 Phi  = [fis1,fis2(2:end),fis3(2:end),fis4(2:end),fis5(2:end)];
 
 
 %Plot cam-follower mechanism:
-h=figure(4)
+h=figure(5)
 x_leva =  e*cos(Phi) + ySeg.*sin(Phi);
 y_leva = -e*sin(Phi) + ySeg.*cos(Phi);
 x_seg = [e,e];
 y_seg = [ySeg(1),ySeg(1)+60]; 
 y_segaux = 0;
 
-subplot(6,3,1:9)
+subplot(7,3,1:9)
 hold on;axis equal;grid on; 
 axis([-100 100 -100 100]);
 title('Cam-Follower Mechanism','interpreter','latex','Fontsize', 20)
@@ -235,7 +295,7 @@ set(gca,'xcolor',[1 1 1])
 set(gca,'ycolor',[1 1 1])
 hold off
 
-subplot(6,3,10:12)
+subplot(7,3,10:12)
 hold on;grid on; 
 axis([0 2*pi -5 35]);
 title('Follower Position [$mm$] - Cam Angle [$rad$]','interpreter','latex','Fontsize', 12, 'Units', 'normalized','Position', [0.5, -0.3, 0])
@@ -243,7 +303,7 @@ plot(Phi,y,'r')
 pnt = plot(0,y(1),'.k', 'MarkerSize',20)
 hold off
 
-subplot(6,3,13:15)
+subplot(7,3,13:15)
 hold on;grid on; 
 axis([0 2*pi -30 30]);
 title('Follower Velocity [$mm/s$] - Cam Angle [$rad$]','interpreter','latex','Fontsize', 12,'Units', 'normalized','Position', [0.5, -0.3, 0])
@@ -251,7 +311,7 @@ plot(Phi,dy,'r')
 dpnt = plot(0,dy(1),'.k', 'MarkerSize',20)
 hold off
 
-subplot(6,3,16:18)
+subplot(7,3,16:18)
 hold on;grid on; 
 axis([0 2*pi -50 80]);
 title('Follower Acceleration [$mm/s^2$] - Cam Angle [$rad$]','interpreter','latex','Fontsize', 12,'Units', 'normalized','Position', [0.5, -0.3, 0])
@@ -259,7 +319,26 @@ plot(Phi,ddy,'r')
 ddpnt = plot(0,ddy(1),'.k', 'MarkerSize',20)
 hold off
 
+subplot(7,3,19:21)
+hold on;grid on; 
+axis([0 2*pi -150 250]);
+title('Follower Jerk [$mm/s^3$] - Cam Angle [$rad$]','interpreter','latex','Fontsize', 12,'Units', 'normalized','Position', [0.5, -0.3, 0])
+%plot(Phi,dddy,'r')
+plot(fis1,dddys1,'r')
+plot(fis2,dddys2,'r')
+plot(fis3,dddys3,'r')
+plot(fis4,dddys4,'r')
+plot(fis5,dddys5,'r')
+%[dddys1,dddys2(2:end),dddys3(2:end),dddys4(2:end),dddys5(2:end)];
+dddpnt = plot(0,dddy(1),'.k', 'MarkerSize',20)
+hold off
+
 % Animate plot:
+x0=10;
+y0=10;
+width=750;
+height=1200
+set(gcf,'position',[x0,y0,width,height])
 
 disp('Press a key to continue!')  
 pause;
@@ -283,11 +362,12 @@ for t=0:dt:(2*pi)/omega
     
     y_aux   = interp1(Phi,y,mod(dphi,2*pi) );
     dy_aux = interp1(Phi,dy,mod(dphi,2*pi) );
-    ddy_aux = interp1(Phi,ddy,mod(dphi,2*pi) );    
+    ddy_aux = interp1(Phi,ddy,mod(dphi,2*pi) );  
+    dddy_aux = interp1(Phi,dddy,mod(dphi,2*pi) );    
     set(pnt,'Xdata',mod(dphi,2*pi) ,'YData',y_aux);
     set(dpnt,'Xdata',mod(dphi,2*pi) ,'YData',dy_aux);   
     set(ddpnt,'Xdata',mod(dphi,2*pi) ,'YData',ddy_aux);   
-
+    set(dddpnt,'Xdata',mod(dphi,2*pi) ,'YData',dddy_aux); 
 
     frame = getframe(h);
     im = frame2im(frame);
